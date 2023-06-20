@@ -1,6 +1,12 @@
 use std::{collections::HashMap, error::Error};
 
-use ndarray::Array3;
+use ndarray::{Array, Array2};
+
+#[derive(Default)]
+pub struct WorldCoordinates {
+    pub x: u32,
+    pub y: u32,
+}
 
 #[derive(Default)]
 pub struct Hp {
@@ -71,24 +77,55 @@ pub struct RelationShip {
 
 #[derive(Default)]
 pub struct Mob {
+    pub world_coordinates: WorldCoordinates,
     pub status: Status,
     pub relationship: RelationShip,
 }
 
-pub struct World2DTopDown {
-    maps: HashMap<String, Array3<char>>,
+pub struct WorldMap {
+    pub path_layer: Array2<u32>,
+    pub mapchip_layer: Array2<u32>,
+    pub mapchip_to_display_dict: HashMap<u32, char>,
 }
 
-impl World2DTopDown {
-    fn new(maps: HashMap<String, Array3<char>>) -> Self {
-        Self { maps }
+impl WorldMap {
+    pub fn render_to_string(&self) -> String {
+        let mut map_display = Vec::<String>::new();
+        for row in self.mapchip_layer.rows() {
+            let mut map_display_row = String::new();
+            for mapchip in row.iter() {
+                map_display_row.push(self.mapchip_to_display_dict[mapchip]);
+            }
+            map_display.push(map_display_row);
+        }
+        map_display.join("\n")
     }
 }
 
-impl Default for World2DTopDown {
+pub struct GameWorld {
+    pub maps: HashMap<String, WorldMap>,
+    pub mobs: Vec<Mob>,
+}
+
+impl GameWorld {
+    pub fn new(maps: HashMap<String, WorldMap>, mobs: Vec<Mob>) -> Self {
+        Self { maps, mobs }
+    }
+
+    pub fn add_mob(&mut self, mob: Mob) {
+        self.mobs.push(mob);
+    }
+
+    pub fn render_world_to_string(&self, map_key: &String) -> String {
+        self.maps[map_key].render_to_string()
+    }
+}
+
+impl Default for GameWorld {
     fn default() -> Self {
         Self {
             maps: HashMap::new(),
+            mobs: Vec::new(),
         }
     }
 }
