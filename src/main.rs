@@ -1,73 +1,46 @@
-use std::default::Default;
+mod models;
 
-#[derive(Default)]
-struct Hp {
-    max: u32,
-    current: u32,
-}
+use std::{default::Default};
 
-#[derive(Default)]
-struct Exp {
-    next: u32,
-    current: u32,
-    carrying: u32,
-}
-
-#[derive(Default)]
-struct Level {
-    max: u32,
-    current: u32,
-}
-
-#[derive(Default)]
-struct Strength {
-    max: u32,
-    current: u32,
-}
-
-#[derive(Default)]
-struct Defense {
-    max: u32,
-    current: u32,
-}
-
-#[derive(Default)]
-struct Agility {
-    max: u32,
-    current: u32,
-}
-
-#[derive(Default)]
-struct Resilience {
-    factor: f32,
-}
-
-#[derive(Default)]
-struct Status {
-    hp: Hp,
-    exp: Exp,
-    level: Level,
-    strength: Strength,
-    defense: Defense,
-    agility: Agility,
-    resilience: Resilience,
-}
-
-#[derive(Default)]
-struct RelationShip {
-    enemies: Vec<Mob>,
-    allies: Vec<Mob>,
-}
-
-#[derive(Default)]
-struct Mob {
-    status: Status,
-    relationship: RelationShip,
-}
+use models::*;
 
 fn main() {
     let player = Mob {
-        ..Default::default()
+        status: Status {
+            hp: Hp {
+                max: 100,
+                current: 100,
+            },
+            exp: Exp {
+                next: 100,
+                current: 0,
+                carrying: 0,
+            },
+            level: Level {
+                max: 100,
+                current: 1,
+            },
+            strength: Strength {
+                max: 100,
+                current: 3,
+            },
+            defense: Defense {
+                max: 100,
+                current: 0,
+            },
+            agility: Agility {
+                max: 100,
+                current: 3,
+            },
+            resilience: Resilience { factor: 0.1 },
+        },
+        relationship: RelationShip {
+            hostile_to_self_as_enemies_of_self: true,
+            friendly_to_self_as_allies_of_self: true,
+            ..Default::default()
+        },
     };
-    println!("Hello, world!");
+    let gameworld: World2DTopDown = World2DTopDown::default();
+    loop {
+    }
 }
