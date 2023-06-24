@@ -1,6 +1,6 @@
 use std::{collections::HashMap, error::Error};
 
-use ndarray::{Array, Array2};
+use ndarray::Array2;
 
 #[derive(Default)]
 pub struct WorldCoordinates {
@@ -127,5 +127,40 @@ impl Default for GameWorld {
             maps: HashMap::new(),
             mobs: Vec::new(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_render_to_string() {
+        use ndarray::array;
+        let mut mapchip_to_display_dict: HashMap<u32, char> = HashMap::new();
+        mapchip_to_display_dict.insert(0, ' ');
+        mapchip_to_display_dict.insert(1, '.');
+        mapchip_to_display_dict.insert(2, '#');
+        let example_worldmap = WorldMap {
+            path_layer: array![
+                [0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 2],
+                [0, 1, 1, 1, 2],
+                [0, 2, 2, 2, 2],
+                [0, 0, 0, 0, 0],
+            ],
+            mapchip_layer: array![
+                [0, 0, 0, 0, 0],
+                [0, 1, 1, 1, 2],
+                [0, 1, 1, 1, 2],
+                [0, 2, 2, 2, 2],
+                [0, 0, 0, 0, 0]
+            ],
+            mapchip_to_display_dict,
+        };
+        assert_eq!(
+            "     \n ...#\n ...#\n ####\n     ",
+            example_worldmap.render_to_string()
+        )
     }
 }
