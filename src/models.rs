@@ -135,7 +135,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_render_to_string() {
+    fn test_worldmap_render_to_string() {
         use ndarray::array;
         let mut mapchip_to_display_dict: HashMap<u32, char> = HashMap::new();
         mapchip_to_display_dict.insert(0, ' ');
