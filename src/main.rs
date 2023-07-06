@@ -1,10 +1,10 @@
 mod models;
 
-use std::{error::Error};
+use std::error::Error;
 
 use crossterm::{
     cursor,
-    event::{Event, KeyCode, KeyEvent, ModifierKeyCode, KeyModifiers},
+    event::{Event, KeyCode, KeyEvent, KeyModifiers, KeyEventKind},
     execute,
     style::Print,
     terminal,
@@ -13,6 +13,29 @@ use crossterm::{
 use models::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let mut player = Mob {
+        coordinate: DungeonMapCoordinate { x: 0, y: 0 },
+        status: Status {
+            hp: Hp {
+                max: 50,
+                current: 50,
+            },
+            exp: Exp {
+                next: 100,
+                current: 0,
+                carrying: 0,
+            },
+            level: Level {
+                max: 100,
+                current: 1,
+            },
+            strength: Strength { max: 3, current: 3 },
+            defense: Defense { max: 1, current: 1 },
+            agility: Agility { max: 3, current: 3 },
+        },
+        appearance_char: '@',
+    };
+
     let mut stdout = std::io::stdout();
     terminal::enable_raw_mode()?;
     execute!(stdout, terminal::EnterAlternateScreen)?;
@@ -25,31 +48,54 @@ fn main() -> Result<(), Box<dyn Error>> {
                 match event {
                     KeyEvent {
                         code: KeyCode::Esc, ..
-                    } | KeyEvent {
+                    }
+                    | KeyEvent {
                         code: KeyCode::Char('c'),
                         modifiers: KeyModifiers::CONTROL,
                         ..
                     } => break,
                     KeyEvent {
                         code: KeyCode::Left,
+                        kind: KeyEventKind::Press,
                         ..
-                    } => println!("go left"),
+                    } => {
+                        player.coordinate.x -= 1;
+                        println!("go left")
+                    }
                     KeyEvent {
-                        code: KeyCode::Up, ..
-                    } => println!("go up"),
+                        code: KeyCode::Up,
+                        kind: KeyEventKind::Press,
+                        ..
+                    } => {
+                        player.coordinate.y -= 1;
+                        println!("go up")
+                    }
                     KeyEvent {
                         code: KeyCode::Right,
+                        kind: KeyEventKind::Press,
                         ..
-                    } => println!("go right"),
+                    } => {
+                        player.coordinate.x += 1;
+                        println!("go right")
+                    }
                     KeyEvent {
                         code: KeyCode::Down,
+                        kind: KeyEventKind::Press,
                         ..
-                    } => println!("go down"),
+                    } => {
+                        player.coordinate.y += 1;
+                        println!("go down")
+                    }
                     _ => println!("{:?}", event),
                 }
             }
             _ => {}
         }
+        execute!(
+            stdout,
+            cursor::MoveTo(player.coordinate.x as u16, player.coordinate.y as u16),
+            Print(player.appearance_char)
+        )?;
         // ----
     }
     execute!(stdout, cursor::Show, terminal::LeaveAlternateScreen)?;
