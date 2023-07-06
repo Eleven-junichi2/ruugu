@@ -4,7 +4,7 @@ use std::{error::Error};
 
 use crossterm::{
     cursor,
-    event::{Event, KeyCode, KeyEvent},
+    event::{Event, KeyCode, KeyEvent, ModifierKeyCode, KeyModifiers},
     execute,
     style::Print,
     terminal,
@@ -25,6 +25,10 @@ fn main() -> Result<(), Box<dyn Error>> {
                 match event {
                     KeyEvent {
                         code: KeyCode::Esc, ..
+                    } | KeyEvent {
+                        code: KeyCode::Char('c'),
+                        modifiers: KeyModifiers::CONTROL,
+                        ..
                     } => break,
                     KeyEvent {
                         code: KeyCode::Left,
