@@ -114,7 +114,6 @@ impl WorldMap {
 impl TopDown2DGridMapRenderer for WorldMap {
     fn render(&self, buffer: &mut impl io::Write) -> Result<(), io::Error> {
         for row in self.mapchip_layer.rows() {
-            dbg!();
             execute!(
                 buffer,
                 Print(
