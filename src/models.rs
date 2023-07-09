@@ -145,7 +145,6 @@ mod tests {
         mapchip_to_display_dict.insert(1, 'b');
         worldmap.mapchip_to_display_dict = mapchip_to_display_dict;
         worldmap.render_lines(&mut buf).unwrap();
-        // dbg!(String::frombuf);
         assert_eq!("aaa\naaa\naaa\n", String::from_utf8(buf).unwrap());
     }
 }
