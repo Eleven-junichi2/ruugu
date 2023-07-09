@@ -1,7 +1,10 @@
-use std::{collections::HashMap, io::{self, Error}};
+use std::{
+    collections::HashMap,
+    io::{self, Error},
+};
 
 use crossterm::{execute, style::Print};
-use ndarray::Array2;
+use ndarray::{Array2, ShapeBuilder};
 
 // pub struct Hp {
 //     pub max: u32,
@@ -75,15 +78,13 @@ pub struct WorldMapCoordinate {
 
 pub struct Mob {
     pub coordinate: WorldMapCoordinate,
-    pub appearance: char
+    pub appearance: char,
 }
 
-pub struct Item {
-
-}
+pub struct Item {}
 
 trait TopDown2DGridMapRenderer {
-    fn render_lines (&self, out: impl io::Write) -> Result<(), io::Error>;
+    fn render_lines(&self, out: &mut impl io::Write) -> Result<(), io::Error>;
 }
 
 pub struct WorldMap {
@@ -96,10 +97,32 @@ pub struct WorldMap {
     pub mobs: HashMap<u32, Mob>,
 }
 
+impl WorldMap {
+    pub fn from_size(width: usize, height: usize) -> Self {
+        Self {
+            path_layer: Array2::zeros((width, height).f()),
+            mapchip_layer: Array2::zeros((width, height).f()),
+            mapchip_to_display_dict: HashMap::new(),
+            mob_layer: Array2::zeros((width, height).f()),
+            item_layer: Array2::zeros((width, height).f()),
+            items: HashMap::new(),
+            mobs: HashMap::new(),
+        }
+    }
+}
+
 impl TopDown2DGridMapRenderer for WorldMap {
-    fn render_lines(&self, mut out: impl io::Write) -> Result<(), io::Error>{
+    fn render_lines(&self, out: &mut impl io::Write) -> Result<(), io::Error> {
         for row in self.mapchip_layer.rows() {
-            execute!(out, Print(row.map(|mapchip_id| self.mapchip_to_display_dict[mapchip_id]).to_string()))?;
+            dbg!();
+            execute!(
+                out,
+                Print(
+                    row.iter()
+                        .map(|mapchip_id| self.mapchip_to_display_dict[mapchip_id])
+                        .collect::<String>()+"\n"
+                )
+            )?;
         }
         Ok(())
     }
@@ -113,7 +136,16 @@ pub struct GameWorld {
 mod tests {
     use super::*;
 
+    #[test]
     fn test_render_worldmap() {
-        todo!()
+        let mut buf = Vec::new();
+        let mut worldmap = WorldMap::from_size(3, 3);
+        let mut mapchip_to_display_dict = HashMap::<u32, char>::new();
+        mapchip_to_display_dict.insert(0, 'a');
+        mapchip_to_display_dict.insert(1, 'b');
+        worldmap.mapchip_to_display_dict = mapchip_to_display_dict;
+        worldmap.render_lines(&mut buf).unwrap();
+        // dbg!(String::frombuf);
+        assert_eq!("aaa\naaa\naaa\n", String::from_utf8(buf).unwrap());
     }
 }
