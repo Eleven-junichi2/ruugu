@@ -84,7 +84,7 @@ pub struct Mob {
 pub struct Item {}
 
 trait TopDown2DGridMapRenderer {
-    fn render_lines(&self, out: &mut impl io::Write) -> Result<(), io::Error>;
+    fn render(&self, buffer: &mut impl io::Write) -> Result<(), io::Error>;
 }
 
 pub struct WorldMap {
@@ -112,15 +112,16 @@ impl WorldMap {
 }
 
 impl TopDown2DGridMapRenderer for WorldMap {
-    fn render_lines(&self, out: &mut impl io::Write) -> Result<(), io::Error> {
+    fn render(&self, buffer: &mut impl io::Write) -> Result<(), io::Error> {
         for row in self.mapchip_layer.rows() {
             dbg!();
             execute!(
-                out,
+                buffer,
                 Print(
                     row.iter()
                         .map(|mapchip_id| self.mapchip_to_display_dict[mapchip_id])
-                        .collect::<String>()+"\n"
+                        .collect::<String>()
+                        + "\n"
                 )
             )?;
         }
@@ -134,7 +135,30 @@ pub struct GameWorld {
 
 #[cfg(test)]
 mod tests {
+    use ndarray::array;
+
     use super::*;
+
+    #[test]
+    fn test_worldmap_from_size() {
+        let worldmap = WorldMap::from_size(4, 4);
+        assert_eq!(
+            array![[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            worldmap.path_layer
+        );
+        assert_eq!(
+            array![[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            worldmap.mapchip_layer
+        );
+        assert_eq!(
+            array![[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            worldmap.mob_layer
+        );
+        assert_eq!(
+            array![[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
+            worldmap.item_layer
+        )
+    }
 
     #[test]
     fn test_render_worldmap() {
@@ -144,7 +168,7 @@ mod tests {
         mapchip_to_display_dict.insert(0, 'a');
         mapchip_to_display_dict.insert(1, 'b');
         worldmap.mapchip_to_display_dict = mapchip_to_display_dict;
-        worldmap.render_lines(&mut buf).unwrap();
+        worldmap.render(&mut buf).unwrap();
         assert_eq!("aaa\naaa\naaa\n", String::from_utf8(buf).unwrap());
     }
 }
