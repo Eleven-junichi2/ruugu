@@ -3,7 +3,7 @@ use std::{
     io::{self, Error},
 };
 
-use crossterm::{execute, style::Print};
+use crossterm::{cursor, execute, style::Print};
 use ndarray::{Array2, ShapeBuilder};
 
 // pub struct Hp {
@@ -72,8 +72,8 @@ use ndarray::{Array2, ShapeBuilder};
 // }
 
 pub struct WorldMapCoordinate {
-    pub x: u32,
-    pub y: u32,
+    pub x: u16,
+    pub y: u16,
 }
 
 pub struct Mob {
@@ -88,6 +88,8 @@ trait TopDown2DGridMapRenderer {
 }
 
 pub struct WorldMap {
+    /// key of `mobs` must be greater than or equal to 1 because 0 means empty
+    /// key of `items` must be greater than or equal to 1 because 0 means empty
     pub path_layer: Array2<u32>,
     pub mapchip_layer: Array2<u32>,
     pub mapchip_to_display_dict: HashMap<u32, char>,
@@ -123,6 +125,20 @@ impl TopDown2DGridMapRenderer for WorldMap {
                         + "\n"
                 )
             )?;
+        }
+        for row in self.mob_layer.rows() {
+            for mob_id in row.iter() {
+                if *mob_id == 0 { continue; }
+                dbg!(mob_id);
+                execute!(
+                    buffer,
+                    cursor::MoveTo(
+                        self.mobs[mob_id].coordinate.x,
+                        self.mobs[mob_id].coordinate.y
+                    ),
+                    Print(self.mobs[mob_id].appearance)
+                )?;
+            }
         }
         Ok(())
     }
