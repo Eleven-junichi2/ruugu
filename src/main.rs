@@ -4,7 +4,7 @@ use std::error::Error;
 
 use crossterm::{
     cursor,
-    event,
+    event::{read, KeyEvent, KeyCode, Event},
     execute,
     style::Print,
     terminal,
@@ -13,8 +13,12 @@ use crossterm::{
 use models::*;
 
 fn main() -> Result<(), Box<dyn Error>> {
+
     loop {
-        dbg!(event::read()?);
+        if let Event::Key(KeyEvent { code, modifiers, kind, state}) = read()? {
+            dbg!(code, modifiers, kind, state);
+        }
+        // dbg!(read()?);
     }
     Ok(())
 }
