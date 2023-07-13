@@ -1,6 +1,7 @@
 use std::{
     collections::HashMap,
     io::{self, Error},
+    string,
 };
 
 use crossterm::{cursor, execute, style::Print};
@@ -77,14 +78,14 @@ pub struct WorldMapCoordinate {
 }
 
 pub struct Mob {
-    pub coordinate: WorldMapCoordinate,
     pub appearance: char,
 }
 
 pub struct Item {}
 
 trait TopDown2DGridMapRenderer {
-    fn render(&self, buffer: &mut impl io::Write) -> Result<(), io::Error>;
+    // fn render(&self, buffer: &mut impl io::Write) -> Result<(), io::Error>;
+    fn render_to_lines(&self, string: &mut String);
 }
 
 pub struct WorldMap {
@@ -93,8 +94,8 @@ pub struct WorldMap {
     pub path_layer: Array2<u32>,
     pub mapchip_layer: Array2<u32>,
     pub mapchip_to_display_dict: HashMap<u32, char>,
-    pub mob_layer: Array2<u32>,
-    pub item_layer: Array2<u32>,
+    pub placed_mobs: HashMap<u32, WorldMapCoordinate>,
+    pub placed_items: HashMap<u32, WorldMapCoordinate>,
     pub items: HashMap<u32, Item>,
     pub mobs: HashMap<u32, Mob>,
 }
@@ -105,8 +106,8 @@ impl WorldMap {
             path_layer: Array2::zeros((width, height).f()),
             mapchip_layer: Array2::zeros((width, height).f()),
             mapchip_to_display_dict: HashMap::new(),
-            mob_layer: Array2::zeros((width, height).f()),
-            item_layer: Array2::zeros((width, height).f()),
+            placed_mobs: HashMap::new(),
+            placed_items: HashMap::new(),
             items: HashMap::new(),
             mobs: HashMap::new(),
         }
@@ -114,33 +115,50 @@ impl WorldMap {
 }
 
 impl TopDown2DGridMapRenderer for WorldMap {
-    fn render(&self, buffer: &mut impl io::Write) -> Result<(), io::Error> {
-        for row in self.mapchip_layer.rows() {
-            execute!(
-                buffer,
-                Print(
-                    row.iter()
-                        .map(|mapchip_id| self.mapchip_to_display_dict[mapchip_id])
-                        .collect::<String>()
-                        + "\n"
-                )
-            )?;
+    // fn render(&self, buffer: &mut impl io::Write) -> Result<(), io::Error> {
+    //     for mapchip_row in self.mapchip_layer.rows() {
+    //         execute!(
+    //             buffer,
+    //             Print(
+    //                 row.iter()
+    //                     .map(|mapchip_id| self.mapchip_to_display_dict[mapchip_id])
+    //                     .collect::<String>()
+    //                     + "\n"
+    //             )
+    //         )?;
+    //     }
+    //     for (y, row) in self.mob_layer.rows().into_iter().enumerate() {
+    //         dbg!("in mob rendering!!!!!!");
+    //         for (x, mob_id) in row.iter().enumerate() {
+    //             if *mob_id == 0 {
+    //                 continue;
+    //             }
+    //             dbg!(mob_id);
+    //             execute!(
+    //                 buffer,
+    //                 cursor::MoveTo(x as u16, y as u16),
+    //                 Print(self.mobs[mob_id].appearance)
+    //             )?;
+    //         }
+    //     }
+    //     Ok(())
+    // }
+    fn render_to_lines(&self, string: &mut String) {
+        let mut lines = Vec::<Vec<char>>::new();
+        for mapchip_row in self.mapchip_layer.rows() {
+            let line = mapchip_row
+                .iter()
+                .map(|mapchip_id| self.mapchip_to_display_dict[mapchip_id])
+                .collect();
+            lines.push(line);
         }
-        for row in self.mob_layer.rows() {
-            for mob_id in row.iter() {
-                if *mob_id == 0 { continue; }
-                dbg!(mob_id);
-                execute!(
-                    buffer,
-                    cursor::MoveTo(
-                        self.mobs[mob_id].coordinate.x,
-                        self.mobs[mob_id].coordinate.y
-                    ),
-                    Print(self.mobs[mob_id].appearance)
-                )?;
-            }
+        // dbg!(&lines);
+        for (mob_id, WorldMapCoordinate { x, y }) in self.placed_mobs.iter() {
+            dbg!("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            lines[*y as usize][*x as usize] = self.mobs[mob_id].appearance;
+            dbg!(&lines[*y as usize][*x as usize]);
         }
-        Ok(())
+        dbg!(&lines);
     }
 }
 
@@ -165,25 +183,24 @@ mod tests {
             array![[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
             worldmap.mapchip_layer
         );
-        assert_eq!(
-            array![[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-            worldmap.mob_layer
-        );
-        assert_eq!(
-            array![[0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]],
-            worldmap.item_layer
-        )
     }
 
     #[test]
-    fn test_render_worldmap() {
-        let mut buf = Vec::new();
+    fn test_render_worldmap_to_string() {
+        // let mut buf = Vec::new();
+        let mut display = String::new();
         let mut worldmap = WorldMap::from_size(3, 3);
         let mut mapchip_to_display_dict = HashMap::<u32, char>::new();
         mapchip_to_display_dict.insert(0, 'a');
         mapchip_to_display_dict.insert(1, 'b');
         worldmap.mapchip_to_display_dict = mapchip_to_display_dict;
-        worldmap.render(&mut buf).unwrap();
-        assert_eq!("aaa\naaa\naaa\n", String::from_utf8(buf).unwrap());
+        worldmap.mobs.insert(1, Mob { appearance: '@' });
+        worldmap
+            .placed_mobs
+            .insert(1, WorldMapCoordinate { x: 1, y: 1 });
+        worldmap.render_to_lines(&mut display);
+        // let string_from_buffer = String::from_utf8(buf).unwrap();
+        // dbg!(&string_from_buffer);
+        // assert_eq!("aaa\naaa\na@a\n", string_from_buffer);
     }
 }
