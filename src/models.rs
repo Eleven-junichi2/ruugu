@@ -132,7 +132,12 @@ impl TopDown2DGridMapRenderer for WorldMap {
         lines
     }
     fn render_to_lines(&self) -> String {
-        todo!();
+        let mut lines = String::new();
+        for line in self.render_to_vec().into_iter() {
+            lines.push_str(&line.into_iter().collect::<String>());
+            lines.push_str("\n");
+        }
+        lines
     }
 }
 
@@ -161,7 +166,6 @@ mod tests {
 
     #[test]
     fn test_render_worldmap_vec() {
-        // let mut buf = Vec::new();
         let mut worldmap = WorldMap::from_size(3, 3);
         let mut mapchip_to_display_dict = HashMap::<u32, char>::new();
         mapchip_to_display_dict.insert(0, 'a');
@@ -171,14 +175,27 @@ mod tests {
         worldmap
             .placed_mobs
             .insert(1, WorldMapCoordinate { x: 1, y: 1 });
-        let display_with_vec2d = worldmap.render_to_vec();
         assert_eq!(
             vec![
                 vec!['a', 'a', 'a'],
                 vec!['a', '@', 'a'],
                 vec!['a', 'a', 'a']
             ],
-            display_with_vec2d
+            worldmap.render_to_vec()
         );
+    }
+
+    #[test]
+    fn test_render_worldmap_lines() {
+        let mut worldmap = WorldMap::from_size(3, 3);
+        let mut mapchip_to_display_dict = HashMap::<u32, char>::new();
+        mapchip_to_display_dict.insert(0, 'a');
+        mapchip_to_display_dict.insert(1, 'b');
+        worldmap.mapchip_to_display_dict = mapchip_to_display_dict;
+        worldmap.mobs.insert(1, Mob { appearance: '@' });
+        worldmap
+            .placed_mobs
+            .insert(1, WorldMapCoordinate { x: 1, y: 1 });
+        assert_eq!("aaa\na@a\naaa\n", worldmap.render_to_lines());
     }
 }
