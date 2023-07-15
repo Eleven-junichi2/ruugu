@@ -1,76 +1,20 @@
-use std::{
-    collections::HashMap,
-    io::{self, Error},
-    string,
-};
+use std::collections::HashMap;
+use std::error::Error;
+use std::fmt;
 
 use crossterm::{cursor, execute, style::Print};
 use ndarray::{Array2, ShapeBuilder};
 
-// pub struct Hp {
-//     pub max: u32,
-//     pub current: u32,
-// }
+#[derive(Debug)]
+pub struct IdOfNotInsertedEntityError;
 
-// pub struct Exp {
-//     pub next: u32,
-//     pub current: u32,
-//     pub carrying: u32,
-// }
+impl Error for IdOfNotInsertedEntityError {}
 
-// pub struct Level {
-//     pub max: u32,
-//     pub current: u32,
-// }
-
-// pub struct Strength {
-//     pub max: u32,
-//     pub current: u32,
-// }
-
-// pub struct Defense {
-//     pub max: u32,
-//     pub current: u32,
-// }
-
-// pub struct Agility {
-//     pub max: u32,
-//     pub current: u32,
-// }
-
-// pub struct Status {
-//     pub hp: Hp,
-//     pub exp: Exp,
-//     pub level: Level,
-//     pub strength: Strength,
-//     pub defense: Defense,
-//     pub agility: Agility,
-// }
-
-// impl Status {
-//     fn calc_actual_values(&self) -> Result<(), Box<dyn Error>> {
-//         todo!("not implemented")
-//     }
-// }
-
-// pub struct Mob {
-//     pub coordinate: DungeonMapCoordinate,
-//     pub status: Status,
-//     pub appearance_char: char,
-// }
-
-// struct DungeonMap {
-//     pub path_layer: Array2<u32>,
-//     pub mapchip_layer: Array2<u32>,
-//     pub mapchip_to_display_dict: HashMap<u32, char>,
-//     pub mob_layer: Array2<u32>,
-// }
-
-// struct GameWorld {
-//     pub maps: HashMap<String, DungeonMap>,
-//     pub mobs: HashMap<u32, Mob>,
-//     pub current_map: String,
-// }
+impl fmt::Display for IdOfNotInsertedEntityError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "entity of given id is not inserted")
+    }
+}
 
 pub struct WorldMapCoordinate {
     pub x: u16,
@@ -113,6 +57,58 @@ impl WorldMap {
             items: HashMap::new(),
             mobs: HashMap::new(),
         }
+    }
+
+    pub fn insert_mob(&mut self, mob: Mob, id: u32) -> u32 {
+        self.mobs.insert(id, mob);
+        id
+    }
+
+    pub fn insert_item(&mut self, item: Item, id: u32) -> u32 {
+        self.items.insert(id, item);
+        id
+    }
+
+    pub fn place_mob_in_world(
+        &mut self,
+        mob_id: u32,
+        coordinate: WorldMapCoordinate,
+    ) -> Result<(), IdOfNotInsertedEntityError> {
+        if self.mobs.contains_key(&mob_id) {
+            self.placed_mobs.insert(mob_id, coordinate);
+            Ok(())
+        } else {
+            Err(IdOfNotInsertedEntityError)
+        }
+    }
+
+    pub fn place_item_in_world(
+        &mut self,
+        item_id: u32,
+        coordinate: WorldMapCoordinate,
+    ) -> Result<(), IdOfNotInsertedEntityError> {
+        if self.items.contains_key(&item_id) {
+            self.placed_mobs.insert(item_id, coordinate);
+            Ok(())
+        } else {
+            Err(IdOfNotInsertedEntityError)
+        }
+    }
+
+    pub fn remove_mob_from_world(&mut self, mob_id: u32) {
+        todo!();
+    }
+
+    pub fn remove_item_from_world(&mut self, item_id: u32) {
+        todo!();
+    }
+
+    pub fn mob_exists(&mut self, mob_id: u32) -> Result<u32, IdOfNotInsertedEntityError> {
+        todo!();
+    }
+
+    pub fn item_exists(&mut self, mob_id: u32) -> Result<u32, IdOfNotInsertedEntityError> {
+        todo!();
     }
 }
 
