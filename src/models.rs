@@ -6,25 +6,28 @@ use crossterm::{cursor, execute, style::Print};
 use ndarray::{Array2, ShapeBuilder};
 
 #[derive(Debug)]
-pub struct IdOfNotInsertedEntityError;
+pub struct IdOfNotRegisteredEntityError;
 
-impl Error for IdOfNotInsertedEntityError {}
+impl Error for IdOfNotRegisteredEntityError {}
 
-impl fmt::Display for IdOfNotInsertedEntityError {
+impl fmt::Display for IdOfNotRegisteredEntityError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "entity of given id is not inserted")
+        write!(f, "entity of given id is not registered")
     }
 }
 
+#[derive(Debug, PartialEq)]
 pub struct WorldMapCoordinate {
     pub x: u16,
     pub y: u16,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Mob {
     pub appearance: char,
 }
 
+#[derive(Debug, PartialEq)]
 pub struct Item {}
 
 trait TopDown2DGridMapRenderer {
@@ -59,55 +62,67 @@ impl WorldMap {
         }
     }
 
-    pub fn insert_mob(&mut self, mob: Mob, id: u32) -> u32 {
+    pub fn put_mapchip(&mut self, mapchip_id: u32) {
+        todo!();
+    }
+
+    pub fn register_mob(&mut self, mob: Mob, id: u32) -> u32 {
         self.mobs.insert(id, mob);
         id
     }
 
-    pub fn insert_item(&mut self, item: Item, id: u32) -> u32 {
+    pub fn register_item(&mut self, item: Item, id: u32) -> u32 {
         self.items.insert(id, item);
         id
     }
 
-    pub fn place_mob_in_world(
+    pub fn place_mob(
         &mut self,
         mob_id: u32,
         coordinate: WorldMapCoordinate,
-    ) -> Result<(), IdOfNotInsertedEntityError> {
+    ) -> Result<(), IdOfNotRegisteredEntityError> {
         if self.mobs.contains_key(&mob_id) {
             self.placed_mobs.insert(mob_id, coordinate);
             Ok(())
         } else {
-            Err(IdOfNotInsertedEntityError)
+            Err(IdOfNotRegisteredEntityError)
         }
     }
 
-    pub fn place_item_in_world(
+    pub fn place_item(
         &mut self,
         item_id: u32,
         coordinate: WorldMapCoordinate,
-    ) -> Result<(), IdOfNotInsertedEntityError> {
+    ) -> Result<(), IdOfNotRegisteredEntityError> {
         if self.items.contains_key(&item_id) {
-            self.placed_mobs.insert(item_id, coordinate);
+            self.placed_items.insert(item_id, coordinate);
             Ok(())
         } else {
-            Err(IdOfNotInsertedEntityError)
+            Err(IdOfNotRegisteredEntityError)
         }
     }
 
-    pub fn remove_mob_from_world(&mut self, mob_id: u32) {
+    pub fn remove_mob_from_map(&mut self, mob_id: u32) {
         todo!();
     }
 
-    pub fn remove_item_from_world(&mut self, item_id: u32) {
+    pub fn remove_item_from_map(&mut self, item_id: u32) {
         todo!();
     }
 
-    pub fn mob_exists(&mut self, mob_id: u32) -> Result<u32, IdOfNotInsertedEntityError> {
+    pub fn unregister_mob(&mut self, mob_id: u32) {
         todo!();
     }
 
-    pub fn item_exists(&mut self, mob_id: u32) -> Result<u32, IdOfNotInsertedEntityError> {
+    pub fn unregister_item(&mut self, item_id: u32) {
+        todo!();
+    }
+
+    pub fn mob_exists(&mut self, mob_id: u32) -> Result<u32, IdOfNotRegisteredEntityError> {
+        todo!();
+    }
+
+    pub fn item_exists(&mut self, mob_id: u32) -> Result<u32, IdOfNotRegisteredEntityError> {
         todo!();
     }
 }
@@ -193,5 +208,53 @@ mod tests {
             .placed_mobs
             .insert(1, WorldMapCoordinate { x: 1, y: 1 });
         assert_eq!("aaa\na@a\naaa\n", worldmap.render_to_lines());
+    }
+
+    #[test]
+    fn test_worldmap_register_mob() {
+        let mut worldmap = WorldMap::from_size(3, 3);
+        let example_mob = Mob { appearance: 'a' };
+        let example_mob_id = worldmap.register_mob(example_mob, 1);
+        assert!(worldmap.mobs.get(&example_mob_id).is_some());
+    }
+
+    #[test]
+    fn test_worldmap_register_item() {
+        let mut worldmap = WorldMap::from_size(3, 3);
+        let example_item = Item {};
+        let example_item_id = worldmap.register_item(example_item, 1);
+        assert!(worldmap.items.get(&example_item_id).is_some());
+    }
+
+    #[test]
+    fn test_worldmap_place_mob() {
+        let mut worldmap = WorldMap::from_size(3, 3);
+        let example_mob = Mob { appearance: 'a' };
+        let example_mob_id = worldmap.register_mob(example_mob, 1);
+        assert!(worldmap
+            .place_mob(example_mob_id, WorldMapCoordinate { x: 2, y: 2 })
+            .is_ok());
+        assert_eq!(
+            WorldMapCoordinate { x: 2, y: 2 },
+            *worldmap.placed_mobs.get(&example_mob_id).unwrap()
+        );
+        let unregistered_id = 3;
+        assert!(worldmap.place_mob(unregistered_id, WorldMapCoordinate { x: 1, y: 1 }).is_err());
+    }
+
+    #[test]
+    fn test_worldmap_place_item() {
+        let mut worldmap = WorldMap::from_size(3, 3);
+        let example_item = Item {};
+        let example_item_id = worldmap.register_item(example_item, 1);
+        assert!(worldmap
+            .place_item(example_item_id, WorldMapCoordinate { x: 1, y: 2 })
+            .is_ok());
+        assert_eq!(
+            WorldMapCoordinate { x: 1, y: 2 },
+            *worldmap.placed_items.get(&example_item_id).unwrap()
+        );
+        let unregistered_id = 2;
+        assert!(worldmap.place_item(unregistered_id, WorldMapCoordinate { x: 1, y: 1 }).is_err());
     }
 }
