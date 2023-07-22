@@ -3,7 +3,7 @@ use std::error::Error;
 use std::fmt;
 
 use crossterm::{cursor, execute, style::Print};
-use ndarray::{Array2, ShapeBuilder};
+use ndarray::{Array2, ShapeBuilder, AssignElem};
 
 #[derive(Debug)]
 pub struct IdOfNotRegisteredEntityError;
@@ -62,8 +62,8 @@ impl WorldMap {
         }
     }
 
-    pub fn put_mapchip(&mut self, mapchip_id: u32) {
-        todo!();
+    pub fn put_mapchip(&mut self, mapchip_id: u32, x: usize, y: usize) {
+        self.mapchip_layer[[x, y]] = mapchip_id;
     }
 
     pub fn register_mob(&mut self, mob: Mob, id: u32) -> u32 {
@@ -256,5 +256,10 @@ mod tests {
         );
         let unregistered_id = 2;
         assert!(worldmap.place_item(unregistered_id, WorldMapCoordinate { x: 1, y: 1 }).is_err());
+    }
+
+    #[test]
+    fn test_worldmap_put_mapchip() {
+        todo!();
     }
 }
