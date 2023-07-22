@@ -30,7 +30,7 @@ pub struct Mob {
 #[derive(Debug, PartialEq)]
 pub struct Item {}
 
-trait TopDown2DGridMapRenderer {
+pub trait TopDown2DGridMapRenderer {
     // fn render(&self, buffer: &mut impl io::Write) -> Result<(), io::Error>;
     // fn render_to_lines(&self, string: &mut String);
     fn render_to_vec(&self) -> Vec<Vec<char>>;
